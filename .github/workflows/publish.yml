@@ -1,0 +1,58 @@
+name: Publish
+
+on:
+  push:
+    tags: ["v*"]
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
+      - run: cargo test -p mini-canvas-core
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun test
+      - run: bun run pack:check
+
+  publish-github:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    if: github.repository == 'fazelstudio/mini-canvas'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          registry-url: https://npm.pkg.github.com
+          scope: "@fazelstudio"
+      - run: cargo install wasm-bindgen-cli --version 0.2.128 --locked
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - name: Publish to GitHub Packages
+        run: npm publish --workspace @fazelstudio/mini-canvas --registry https://npm.pkg.github.com
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
