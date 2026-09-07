@@ -57,6 +57,6 @@ jobs:
       - run: bun install --frozen-lockfile
       - run: bun run build
       - name: Publish to GitHub Packages
-        run: npm publish --workspace @fazelstudio/mini-canvas --registry https://npm.pkg.github.com
+        run: npm publish --workspace @fazelstudio/mini-canvas --registry https://npm.pkg.github.com --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
