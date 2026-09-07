@@ -1,4 +1,6 @@
 import { mkdir } from "node:fs/promises";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -10,24 +12,51 @@ await mkdir(wasmDir, { recursive: true });
 await mkdir(dist, { recursive: true });
 
 function run(command, args, cwd = root) {
-  const result = Bun.spawnSync([command, ...args], { cwd, stdout: "inherit", stderr: "inherit" });
-  if (!result.success) process.exit(result.exitCode ?? 1);
+  const cargoBin = resolve(homedir(), ".cargo", "bin");
+  const env = {
+    ...process.env,
+    PATH: `${cargoBin}:${process.env.PATH ?? ""}:${process.env.HOME ? `${process.env.HOME}/.cargo/bin` : ""}:/home/runner/.cargo/bin:/root/.cargo/bin`,
+  };
+  const result = Bun.spawnSync([command, ...args], { cwd, stdout: "inherit", stderr: "inherit", env });
+  if (!result.success) {
+    // Fallback: try with explicit PATH for wasm-bindgen
+    if (command === "wasm-bindgen" || command.endsWith("wasm-bindgen") || command.endsWith("wasm-bindgen.exe")) {
+      console.error(`[build] failed to spawn "${command}", trying fallback candidates...`);
+      for (const cand of [
+        resolve(homedir(), ".cargo", "bin", "wasm-bindgen"),
+        resolve(homedir(), ".cargo", "bin", "wasm-bindgen.exe"),
+        "/home/runner/.cargo/bin/wasm-bindgen",
+        "/root/.cargo/bin/wasm-bindgen",
+      ]) {
+        if (existsSync(cand)) {
+          console.error(`[build] retrying with ${cand}`);
+          const r2 = Bun.spawnSync([cand, ...args], { cwd, stdout: "inherit", stderr: "inherit", env });
+          if (r2.success) return;
+        }
+      }
+      // Final fallback: try cargo run
+      console.error(`[build] trying cargo run -p wasm-bindgen-cli`);
+      const r3 = Bun.spawnSync(["cargo", "run", "--quiet", "-p", "wasm-bindgen-cli", "--", ...args], { cwd, stdout: "inherit", stderr: "inherit", env });
+      if (r3.success) return;
+    }
+    process.exit(result.exitCode ?? 1);
+  }
 }
 
 run("cargo", ["build", "-p", "mini-canvas-core", "--release", "--target", "wasm32-unknown-unknown"]);
-import { existsSync } from "node:fs";
-import { homedir } from "node:os";
+
+// Resolve wasm-bindgen with cargo bin in PATH
 let wasmBindgen = "wasm-bindgen";
 const candidates = [
   resolve(homedir(), ".cargo", "bin", process.platform === "win32" ? "wasm-bindgen.exe" : "wasm-bindgen"),
-  resolve(process.env.HOME ?? "", ".cargo", "bin", process.platform === "win32" ? "wasm-bindgen.exe" : "wasm-bindgen"),
-  resolve(process.env.USERPROFILE ?? "", ".cargo", "bin", "wasm-bindgen.exe"),
   "/home/runner/.cargo/bin/wasm-bindgen",
   "/root/.cargo/bin/wasm-bindgen",
 ];
 for (const c of candidates) {
   try { if (c && existsSync(c)) { wasmBindgen = c; break; } } catch {}
 }
+console.log(`[build] using wasm-bindgen: ${wasmBindgen}`);
+
 const wasmPath = resolve(root, "target/wasm32-unknown-unknown/release/mini_canvas_core.wasm");
 run(wasmBindgen, [
   "--target", "web",

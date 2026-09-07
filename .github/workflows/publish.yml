@@ -27,6 +27,8 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
       - run: cargo test -p mini-canvas-core
+      - run: cargo install wasm-bindgen-cli --version 0.2.128 --locked
+      - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
       - run: bun install --frozen-lockfile
       - run: bun run build
       - run: bun test
@@ -50,6 +52,8 @@ jobs:
           registry-url: https://npm.pkg.github.com
           scope: "@fazelstudio"
       - run: cargo install wasm-bindgen-cli --version 0.2.128 --locked
+      - run: echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+      - run: ls -lh $HOME/.cargo/bin/wasm-bindgen* && which wasm-bindgen || echo "which failed"
       - run: bun install --frozen-lockfile
       - run: bun run build
       - name: Publish to GitHub Packages
