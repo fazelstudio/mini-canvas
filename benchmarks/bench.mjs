@@ -168,14 +168,10 @@ if (shouldUpdateResults) {
   } catch {}
   const md = `# Benchmark Results — @fazelstudio/mini-canvas v0.1.0
 
-## Status: competitor comparison deferred
+## Status
 
-\`modules/AGENT_INSTRUCTIONS.md\` Fase 6 asks for a comparison against \`@napi-rs/canvas\`
-(and \`node-canvas\` if possible). The project owner decided to keep the
-repository free of external npm packages, including benchmark competitors, so
-this benchmark documents **absolute numbers only** with a reproducible
-methodology. A competitor comparison can be added later without changing the
-library itself — the workload and harness below are the contract for it.
+This benchmark documents absolute numbers with a reproducible methodology.
+The workload and harness below are the contract for future comparison.
 
 ## Methodology
 

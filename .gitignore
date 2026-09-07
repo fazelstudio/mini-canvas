@@ -23,8 +23,6 @@ examples/*.jpeg
 /modules/
 
 # Large chat history (1 MB)
-/freebuff-*.md
-freebuff-*.md
 *.bak
 
 npm-debug.log*

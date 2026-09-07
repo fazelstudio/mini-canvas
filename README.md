@@ -63,8 +63,7 @@ BENCH_UPDATE=1 bun run test # test + auto-update RESULTS.md via posttest hook
 bun run test:update         # same, explicit
 ```
 
-Note: `packages/mini-canvas/dist/` and `wasm/` are build outputs and are not
-committed — CI rebuilds them from source on every push, and `npm pack`
+Note: Build outputs are not committed — CI rebuilds them from source on every push, and `npm pack`
 includes them from disk via the package's `files` field.
 
 ## Repository layout
@@ -75,7 +74,6 @@ packages/mini-canvas/    Published npm package (TS wrapper + WASM glue)
 examples/                Four runnable examples (output written next to them)
 benchmarks/              Dependency-free benchmark + RESULTS.md
 fixtures/                Shared test/example assets (Fira Sans, generated JPEG)
-modules/                 Internal working documents (not published)
 scripts/                 Build orchestration
 ```
 
@@ -85,10 +83,8 @@ scripts/                 Build orchestration
   quick start and text-rendering notes
 - [`examples/README.md`](examples/README.md) — what each example demonstrates
 - [`benchmarks/RESULTS.md`](benchmarks/RESULTS.md) — measured numbers and
-  methodology; competitor comparison deferred (see `DECISIONS.md`)
+  methodology
 - [`DECISIONS.md`](DECISIONS.md) — design decisions and their rationale
-- `modules/PROGRESS.md` — milestone status (internal)
-- `modules/AGENT_INSTRUCTIONS.md` — original project brief (internal)
 
 ## License
 

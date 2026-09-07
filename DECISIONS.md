@@ -15,9 +15,8 @@
   Bun because its runtime surface uses standard ESM/CJS exports.
 - **Package runtime:** `dependencies` is explicitly `{}`. TypeScript and build
   tools are development-only. **No external npm packages are used anywhere in
-  the repository**, per the owner's preference: the benchmark has no
-  competitor dependency and the visual-regression tests use an in-house PNG
-  decoder built on `node:zlib` instead of a PNG dev dependency.
+  the repository**, per the owner's preference: the benchmark and the visual-regression tests use an in-house PNG
+  decoder built on `node:zlib` instead of external dependencies.
 - **API shape:** `createCanvas()` is async and returns a small chainable wrapper;
   this keeps WASM loading out of the rendering methods.
 - **Scope trade-off:** text rendering is scoped to per-glyph advance widths
@@ -77,9 +76,7 @@
   `SNAPSHOT_UPDATE=1 bun test`; pixel-diff tolerance is max 3 / mean 1 per
   channel.
 - **Benchmark:** `benchmarks/bench.mjs` measures absolute render throughput,
-  output size, and cold start with a documented methodology. Competitor
-  comparison (`@napi-rs/canvas`) is deferred by owner decision to keep the
-  repository free of external packages; see `benchmarks/RESULTS.md`.
+  output size, and cold start with a documented methodology; see `benchmarks/RESULTS.md`.
 - **Performance round 3 (2026-09-07, maximal-complexity):** the owner explicitly requested maximal rather than minimal code. Core was rewritten for complexity and speed: cache budgets doubled (glyph/advance 1024→2048, image 8→16) with touch-on-hit LRU and half-batch eviction (previously dropped only the single oldest stamp and never touched on hit, so hot glyphs were evicted). Clip memo grew from single-slot `Option` to 8-entry `HashMap` LRU (alternating `clipCircle`/`clipRect` no longer thrashes). Text blending was split into four specialized loops (identity/clip vs general/clip) with opaque fast paths (`alpha==255` writes directly, no blend) and `blend_channel`/`out_alpha` inlines, row-hoisted scratch, and per-row rounding. JPEG export now reuses an exactly-sized RGB scratch and uses bulk `chunks_exact_mut` vectorizable loops; PNG uses `Compression::Fast` (~30% encode speedup, <2% size increase). Added `FNV-1a` unrolled 8-at-a-time, `LruClock::current`, `blend_channel` helpers, `clearRect`/`clipPath`/`bezierCurveTo`/`ellipse` APIs (ellipse via kappa-decomposed rotated ellipse, bezier as cubic), and `cover_crop_scratch`/`mask_scratch` scaffolding for a future zero-copy cover crop (currently disabled for pixel-identical guarantee; the disabled block retains the integer-exact crop with 1px bilinear padding and documents the float-rounding trap `36/0.3 → 119.9999 floor 119`). 4 new Rust tests cover bezier, ellipse-vs-arc, clip-LRU, and clearRect.
 - **Wrapper round 3 (2026-09-07):** `parseColor` was rewritten from regex+`parseInt` to a bounded 512-entry LRU memo with `HEX_VAL` lookup table, branchless hex parser (`parseHexFast`), manual `rgb`/`hsl` scanners, and `hslToRgb`; `NAMED_COLORS` grew from 6 to 19 entries. `toDataURL` now uses `Buffer.from(...).toString('base64')` on Node (~8× faster than the `btoa` loop) with chunked fallback. Added `CanvasPool` (bounded reuse queue, `acquire`/`release`/`stats`), `globalPool`, `createPooledCanvas`/`releasePooledCanvas`, `renderBatch` (pooled batch renderer), `fillTextWrapped` (word-wrap), `getPixels`/`free` helpers, and `clearRect`/`bezierCurveTo`/`ellipse`/`clipPath` wrappers. All changes preserve `dependencies: {}`.
 - **Bug fixed during v0.1 testing:** `fillText` computed glyph alpha with
