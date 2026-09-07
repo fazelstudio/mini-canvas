@@ -9,7 +9,9 @@
     "pack:check": "bun run --cwd packages/mini-canvas pack:check",
     "bench": "bun benchmarks/bench.mjs",
     "bench:update": "bun benchmarks/bench.mjs --update",
-    "posttest": "bun scripts/posttest.mjs"
+    "posttest": "bun scripts/posttest.mjs",
+    "publish:mini": "npm publish --workspace @fazelstudio/mini-canvas --access public",
+    "publish:dry": "npm pack --workspace @fazelstudio/mini-canvas --dry-run"
   },
   "workspaces": ["packages/*"]
 }
