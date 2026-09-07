@@ -15,9 +15,19 @@ function run(command, args, cwd = root) {
 }
 
 run("cargo", ["build", "-p", "mini-canvas-core", "--release", "--target", "wasm32-unknown-unknown"]);
-const wasmBindgen = process.platform === "win32"
-  ? resolve(process.env.USERPROFILE ?? "", ".cargo", "bin", "wasm-bindgen.exe")
-  : "wasm-bindgen";
+import { existsSync } from "node:fs";
+import { homedir } from "node:os";
+let wasmBindgen = "wasm-bindgen";
+const candidates = [
+  resolve(homedir(), ".cargo", "bin", process.platform === "win32" ? "wasm-bindgen.exe" : "wasm-bindgen"),
+  resolve(process.env.HOME ?? "", ".cargo", "bin", process.platform === "win32" ? "wasm-bindgen.exe" : "wasm-bindgen"),
+  resolve(process.env.USERPROFILE ?? "", ".cargo", "bin", "wasm-bindgen.exe"),
+  "/home/runner/.cargo/bin/wasm-bindgen",
+  "/root/.cargo/bin/wasm-bindgen",
+];
+for (const c of candidates) {
+  try { if (c && existsSync(c)) { wasmBindgen = c; break; } } catch {}
+}
 const wasmPath = resolve(root, "target/wasm32-unknown-unknown/release/mini_canvas_core.wasm");
 run(wasmBindgen, [
   "--target", "web",
