@@ -1,0 +1,41 @@
+# Rust / WASM build
+/target/
+target/
+
+# Node / Bun
+node_modules/
+bun.lockb
+
+# Generated package output (rebuilt in CI, published via `files` whitelist)
+packages/mini-canvas/dist/
+packages/mini-canvas/wasm/
+
+# Packed tarball
+*.tgz
+*.tar.gz
+
+# Example outputs (keep code, ignore rendered images)
+examples/*.png
+examples/*.jpg
+examples/*.jpeg
+
+# Internal working docs — not for public repo (npm already ignores via `files`)
+/modules/
+
+# Large chat history (1 MB)
+/freebuff-*.md
+freebuff-*.md
+*.bak
+
+npm-debug.log*
+bun-debug.log*
+*.log
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+.env
+.env.*
+!.env.example

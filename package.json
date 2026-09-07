@@ -1,0 +1,15 @@
+{
+  "name": "mini-canvas-workspace",
+  "private": true,
+  "scripts": {
+    "build": "bun run --cwd packages/mini-canvas build",
+    "test": "bun run --cwd packages/mini-canvas test",
+    "test:update": "bun run --cwd packages/mini-canvas test && bun benchmarks/bench.mjs --update",
+    "test:bench": "bun run --cwd packages/mini-canvas test && bun benchmarks/bench.mjs --update",
+    "pack:check": "bun run --cwd packages/mini-canvas pack:check",
+    "bench": "bun benchmarks/bench.mjs",
+    "bench:update": "bun benchmarks/bench.mjs --update",
+    "posttest": "bun scripts/posttest.mjs"
+  },
+  "workspaces": ["packages/*"]
+}

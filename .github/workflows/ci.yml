@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - run: cargo test -p mini-canvas-core
+      - run: cargo build -p mini-canvas-core --target wasm32-unknown-unknown
+      - run: cargo install wasm-bindgen-cli --version 0.2.128 --locked
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: bun test
+      - run: bun run pack:check
+
+  test-node:
+    name: node ${{ matrix.node-version }}
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions-rust-lang/setup-rust-toolchain@v1
+        with:
+          target: wasm32-unknown-unknown
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.3.11
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+      - run: cargo install wasm-bindgen-cli --version 0.2.128 --locked
+      - run: bun install --frozen-lockfile
+      - run: bun run build
+      - run: node --test test/node.test.mjs
+        working-directory: packages/mini-canvas

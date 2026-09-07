@@ -1,0 +1,15 @@
+[workspace]
+members = ["core-rs"]
+resolver = "2"
+
+[profile.release]
+# opt-level 3 (vs the original `z`): enables LLVM auto-vectorization over
+# tiny-skia's scalar raster/shader loops on wasm32. Measured on 640x360:
+# linear gradient 33.5ms -> ~7ms, full card ~49ms -> ~9ms. Costs ~9ms on
+# one-shot JPEG export (encoder prefers z) — an accepted tradeoff, see
+# DECISIONS.md.
+opt-level = 3
+lto = "fat"
+codegen-units = 1
+panic = "abort"
+strip = true

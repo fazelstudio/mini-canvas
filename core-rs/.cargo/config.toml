@@ -1,0 +1,6 @@
+[build]
+# NOTE: `+simd128` was tested and deliberately NOT enabled. tiny-skia's `f32x8`
+# pipeline is a scalar struct outside x86 targets, so nothing in our dependency
+# graph emits v128 instructions (the built wasm is byte-identical with the flag
+# on or off). The gradient speedup comes entirely from opt-level 3
+# auto-vectorization, configured in the workspace Cargo.toml.
